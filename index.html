@@ -117,6 +117,11 @@ footer{margin-top:40px;opacity:.65;font-size:14px}
 .lock svg.cat{width:80px;height:86px;filter:grayscale(.3)}
 .lock p{margin:8px 0 16px;font-weight:700}
 canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:30}
+.musicbtn{position:fixed;left:16px;bottom:16px;z-index:12;width:48px;height:48px;border-radius:50%;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:24px;background:linear-gradient(135deg,var(--pink),var(--deep));box-shadow:0 6px 18px rgba(224,85,143,.45)}
+.musicbtn[hidden]{display:none}
+.musicbtn.paused{opacity:.55}
+#ytwrap{position:fixed;left:-10px;top:-10px;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
@@ -128,6 +133,7 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:30}
     <symbol id="spark" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1l2.6 8.4L23 12l-8.4 2.6L12 23l-2.6-8.4L1 12l8.4-2.6z"/></symbol>
     <symbol id="flower" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="12" cy="5.5" r="4"/><circle cx="18.5" cy="10" r="4"/><circle cx="16" cy="18" r="4"/><circle cx="8" cy="18" r="4"/><circle cx="5.5" cy="10" r="4"/></g><circle cx="12" cy="12" r="3.4" fill="#ffd84d"/></symbol>
     <symbol id="paw" viewBox="0 0 24 24"><g fill="currentColor"><ellipse cx="12" cy="16.5" rx="6.2" ry="5"/><circle cx="4.8" cy="10.5" r="2.4"/><circle cx="9.2" cy="5.8" r="2.6"/><circle cx="14.8" cy="5.8" r="2.6"/><circle cx="19.2" cy="10.5" r="2.4"/></g></symbol>
+    <symbol id="note" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3z"/></symbol>
     <symbol id="puzzle" viewBox="0 0 24 24"><path fill="currentColor" d="M20.5 11H19V7a2 2 0 0 0-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4a2 2 0 0 0-2 2v3.8h1.5a2.7 2.7 0 0 1 0 5.4H2V20a2 2 0 0 0 2 2h3.8v-1.5a2.7 2.7 0 0 1 5.4 0V22H17a2 2 0 0 0 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z"/></symbol>
     <symbol id="lock" viewBox="0 0 24 24"><path fill="currentColor" d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zM9 6a3 3 0 0 1 6 0v2H9z"/></symbol>
     <symbol id="ticket" viewBox="0 0 24 24"><path fill="currentColor" d="M22 10V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4a2 2 0 0 1 0 4v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 1 0-4zm-9 6h-2v-2h2zm0-4h-2V8h2z"/></symbol>
@@ -160,6 +166,8 @@ canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:30}
 </svg>
 
 <div id="float"></div>
+<div id="ytwrap"></div>
+<button class="musicbtn" id="music" aria-label="تشغيل أو إيقاف الأغنية" hidden><svg class="i"><use href="#note"/></svg></button>
 <canvas id="confetti"></canvas>
 
 <!-- مدخل -->
@@ -247,6 +255,7 @@ const CONFIG = {
   herName: "إيلاف",
   yourName: "أسيل",
   startDate: "2024-10-09T00:00:00", // تاريخ بداية صداقتكم (عدّليه)
+  music: { id: "FjHGZj2IjBk", start: 2 },   // أغنية يوتيوب: المعرّف وثانية البداية
   heroSub: "سنتين من الضحك والذكريات والأيام الحلوة، وإن شاء الله للأبد.",
 
   // مراحل البازل. بدلي img بصور ثانية (حطيها في مجلد photos) لو تبين
@@ -474,8 +483,27 @@ function unlockAll(){
   boom();
 }
 
+/* ========== الأغنية ========== */
+let playing = false;
+function startMusic(){
+  const {id, start} = CONFIG.music;
+  const f = document.createElement("iframe");
+  f.id = "yt"; f.allow = "autoplay; encrypted-media"; f.title = "music";
+  f.src = `https://www.youtube.com/embed/${id}?autoplay=1&start=${start}&loop=1&playlist=${id}&controls=0&playsinline=1&enablejsapi=1`;
+  $("ytwrap").appendChild(f);
+  $("music").hidden = false;
+  playing = true;
+}
+$("music").onclick = () => {
+  const f = $("yt"); if(!f) return;
+  playing = !playing;
+  f.contentWindow.postMessage(JSON.stringify({event:"command", func: playing ? "playVideo" : "pauseVideo", args:[]}), "*");
+  $("music").classList.toggle("paused", !playing);
+};
+
 function openIt(){
   $("intro").classList.add("hide");
+  startMusic();
   startStage(0);
 }
 $("open").onclick = openIt; $("giftBtn").onclick = openIt;
