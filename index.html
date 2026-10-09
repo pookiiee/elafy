@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سنتين مع إيلاف</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Reem+Kufi:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#fff0f6;--bg2:#ffd9e8;--pink:#ff7eb3;--deep:#e0558f;--yellow:#ffd84d;--orange:#f6a84b;--card:rgba(255,255,255,.78);--text:#5a2740}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Tajawal',sans-serif;color:var(--text);min-height:100vh;
+  background:radial-gradient(circle at 20% 0%,#fff8d6 0,transparent 40%),linear-gradient(180deg,var(--bg1),var(--bg2));background-attachment:fixed;overflow-x:hidden}
+svg.i{width:1em;height:1em;display:inline-block;vertical-align:-.15em}
+#float{position:fixed;inset:0;pointer-events:none;z-index:0}
+.fl{position:absolute;bottom:-50px;animation:rise linear forwards;opacity:.75}
+@keyframes rise{to{transform:translateY(-115vh) rotate(25deg);opacity:0}}
+.btn{font-family:inherit;font-size:18px;font-weight:700;border:0;border-radius:999px;padding:13px 30px;cursor:pointer;color:#fff;
+  background:linear-gradient(135deg,var(--pink),var(--deep));box-shadow:0 8px 24px rgba(224,85,143,.4);transition:transform .2s;display:inline-flex;gap:8px;align-items:center}
+.btn:hover{transform:scale(1.05)}
+.btn.soft{background:#fff;color:var(--deep);box-shadow:0 4px 14px rgba(224,85,143,.2);font-size:15px;padding:9px 20px}
+
+/* شاشات كاملة */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;text-align:center;
+  background:linear-gradient(180deg,#fff8d6,var(--bg2));transition:opacity .8s,visibility .8s}
+#intro{z-index:10}
+#game{z-index:15;opacity:0;visibility:hidden}
+#game.on{opacity:1;visibility:visible}
+#intro.hide{opacity:0;visibility:hidden}
+.gift{width:130px;height:130px;cursor:pointer;animation:bob 2s ease-in-out infinite;filter:drop-shadow(0 10px 18px rgba(224,85,143,.4))}
+@keyframes bob{50%{transform:translateY(-12px) rotate(-3deg)}}
+.screen h1{font-family:'Reem Kufi';font-size:clamp(26px,7vw,40px);color:var(--deep)}
+
+/* البازل */
+.stagebar{display:flex;gap:8px;align-items:center;font-weight:800;color:var(--deep)}
+.stagebar i{width:34px;height:8px;border-radius:8px;background:#fff;display:block}
+.stagebar i.done{background:var(--pink)}.stagebar i.cur{background:var(--yellow)}
+.board{position:relative;width:min(80vw,330px,calc((100vh - 280px)*564/829));aspect-ratio:564/829;display:grid;gap:3px;padding:6px;border-radius:22px;background:#fff;
+  box-shadow:0 12px 34px rgba(224,85,143,.3);direction:ltr}
+.tile{background-repeat:no-repeat;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:transform .15s,box-shadow .15s}
+.tile:hover{transform:scale(.97)}
+.tile.sel{border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,126,179,.5);transform:scale(.94)}
+.board.solved{gap:0;padding:6px}.board.solved .tile{border-radius:0;pointer-events:none}
+.hint{position:absolute;inset:6px;border-radius:16px;background-size:100% 100%;opacity:0;pointer-events:none;transition:opacity .3s}
+.hint.on{opacity:1}
+.gbtns{display:flex;gap:10px}
+#win{position:absolute;inset:0;background:rgba(255,240,246,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+#win.on{display:flex}
+#win h2{margin:0}
+#win svg.cat{width:120px;height:130px}
+
+/* الموقع */
+main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:0 20px 80px}
+section{padding:60px 0 10px;opacity:0;transform:translateY(30px);transition:all .9s}
+section.show{opacity:1;transform:none}
+.chapter[hidden],.lock[hidden]{display:none}
+.hero{text-align:center;padding-top:50px}
+.cat-big{width:170px;height:184px;animation:bob 2.4s ease-in-out infinite;filter:drop-shadow(0 12px 14px rgba(246,168,75,.35))}
+.hero .big{font-family:'Reem Kufi';font-size:clamp(70px,22vw,140px);line-height:1;
+  background:linear-gradient(135deg,var(--pink),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1{font-size:clamp(24px,6vw,36px);font-weight:800;margin-top:6px;color:var(--deep)}
+.hero p{margin-top:14px;opacity:.85;font-size:18px}
+h2{font-family:'Reem Kufi';font-size:28px;text-align:center;margin-bottom:26px;color:var(--deep);display:flex;gap:10px;justify-content:center;align-items:center}
+h2 svg{color:var(--yellow)}
+.sub{text-align:center;opacity:.75;margin:-14px 0 20px;font-size:15px}
+
+.counter{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.counter div{background:var(--card);border:2px solid #fff;border-radius:22px;padding:18px 4px;text-align:center;box-shadow:0 6px 20px rgba(224,85,143,.15)}
+.counter b{display:block;font-size:clamp(24px,7vw,38px);color:var(--deep)}
+.counter span{font-size:13px;opacity:.8}
+
+/* بطاقات الأسباب */
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.fc{perspective:700px;height:130px;cursor:pointer}
+.fc .in{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
+.fc.flip .in{transform:rotateY(180deg)}
+.fc .f,.fc .b{position:absolute;inset:0;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;backface-visibility:hidden;text-align:center;border:2px solid #fff;box-shadow:0 6px 20px rgba(224,85,143,.18)}
+.fc .f{background:linear-gradient(135deg,#ffb3d1,var(--pink));color:#fff;font-weight:800;font-size:17px}
+.fc .f svg{font-size:34px}
+.fc .b{background:#fff;transform:rotateY(180deg);font-weight:700;line-height:1.6;font-size:15px}
+
+.timeline{position:relative;padding-right:30px}
+.timeline:before{content:"";position:absolute;right:9px;top:0;bottom:0;width:3px;border-radius:3px;background:linear-gradient(var(--pink),var(--yellow))}
+.mem{position:relative;background:var(--card);border:2px solid #fff;border-radius:22px;padding:18px 20px;margin-bottom:18px;box-shadow:0 6px 20px rgba(224,85,143,.15)}
+.mem .dot{position:absolute;right:-34px;top:18px;width:24px;height:24px;color:var(--pink)}
+.mem small{color:#e8892a;font-weight:800}
+.mem h3{margin:4px 0 6px;font-size:20px;color:var(--deep)}
+.mem p{line-height:1.8}
+.mem img{width:100%;border-radius:14px;margin-top:12px}
+.pics{display:grid;gap:8px;margin-top:12px}
+.pics img{margin:0;aspect-ratio:1/1;object-fit:cover;object-position:center;cursor:zoom-in;min-width:0}
+.pics.full img{aspect-ratio:auto;object-fit:contain}
+#lightbox{position:fixed;inset:0;z-index:40;background:rgba(40,10,30,.85);display:none;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+#lightbox.on{display:flex}
+#lightbox img{max-width:100%;max-height:100%;border-radius:14px}
+
+/* القسايم */
+.coupon{position:relative;display:flex;align-items:center;gap:14px;background:var(--card);border:2px dashed var(--pink);border-radius:20px;padding:14px 18px;margin-bottom:14px;overflow:hidden}
+.coupon svg.ci{width:38px;height:38px;color:var(--orange);flex:none}
+.coupon b{flex:1;font-size:17px}
+.coupon .btn{padding:8px 16px;font-size:14px}
+.coupon .stamp{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.8);color:var(--deep);font-family:'Reem Kufi';font-size:26px}
+.coupon .stamp span{border:3px solid var(--deep);border-radius:12px;padding:2px 18px;transform:rotate(-6deg)}
+.coupon.used .stamp{display:flex}
+
+.wishes{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.wishes span{background:#fff;border-radius:999px;padding:10px 18px;font-weight:700;box-shadow:0 4px 12px rgba(224,85,143,.15);display:inline-flex;gap:8px;align-items:center}
+.wishes svg{color:var(--yellow)}
+
+.letter{background:var(--card);border:2px dashed var(--pink);border-radius:26px;padding:30px 26px;line-height:2.1;font-size:18px;white-space:pre-line;box-shadow:0 8px 26px rgba(224,85,143,.15)}
+.end{text-align:center}
+.end svg.cat{width:100px;height:108px;margin-bottom:14px;animation:bob 2.4s ease-in-out infinite}
+footer{margin-top:40px;opacity:.65;font-size:14px}
+
+/* القفل */
+.lock{margin:60px 0 0;text-align:center;background:var(--card);border:2px dashed var(--pink);border-radius:26px;padding:26px 18px}
+.lock svg.cat{width:80px;height:86px;filter:grayscale(.3)}
+.lock p{margin:8px 0 16px;font-weight:700}
+canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:30}
+</style>
+</head>
+<body>
+
+<!-- أيقونات -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></symbol>
+    <symbol id="spark" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1l2.6 8.4L23 12l-8.4 2.6L12 23l-2.6-8.4L1 12l8.4-2.6z"/></symbol>
+    <symbol id="flower" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="12" cy="5.5" r="4"/><circle cx="18.5" cy="10" r="4"/><circle cx="16" cy="18" r="4"/><circle cx="8" cy="18" r="4"/><circle cx="5.5" cy="10" r="4"/></g><circle cx="12" cy="12" r="3.4" fill="#ffd84d"/></symbol>
+    <symbol id="paw" viewBox="0 0 24 24"><g fill="currentColor"><ellipse cx="12" cy="16.5" rx="6.2" ry="5"/><circle cx="4.8" cy="10.5" r="2.4"/><circle cx="9.2" cy="5.8" r="2.6"/><circle cx="14.8" cy="5.8" r="2.6"/><circle cx="19.2" cy="10.5" r="2.4"/></g></symbol>
+    <symbol id="puzzle" viewBox="0 0 24 24"><path fill="currentColor" d="M20.5 11H19V7a2 2 0 0 0-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4a2 2 0 0 0-2 2v3.8h1.5a2.7 2.7 0 0 1 0 5.4H2V20a2 2 0 0 0 2 2h3.8v-1.5a2.7 2.7 0 0 1 5.4 0V22H17a2 2 0 0 0 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z"/></symbol>
+    <symbol id="lock" viewBox="0 0 24 24"><path fill="currentColor" d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zM9 6a3 3 0 0 1 6 0v2H9z"/></symbol>
+    <symbol id="ticket" viewBox="0 0 24 24"><path fill="currentColor" d="M22 10V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v4a2 2 0 0 1 0 4v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 1 0-4zm-9 6h-2v-2h2zm0-4h-2V8h2z"/></symbol>
+    <symbol id="cat" viewBox="0 0 120 132">
+      <path d="M92 112c18-2 26-22 16-36" stroke="#f6a84b" stroke-width="11" stroke-linecap="round" fill="none"/>
+      <ellipse cx="60" cy="102" rx="30" ry="26" fill="#f6a84b"/>
+      <ellipse cx="60" cy="106" rx="14" ry="18" fill="#fff4e6"/>
+      <ellipse cx="47" cy="125" rx="10" ry="6" fill="#fff4e6"/><ellipse cx="73" cy="125" rx="10" ry="6" fill="#fff4e6"/>
+      <path d="M22 44L28 8L56 28z" fill="#f6a84b"/><path d="M30 34L32 18L46 28z" fill="#ffb3c6"/>
+      <path d="M98 44L92 8L64 28z" fill="#f6a84b"/><path d="M90 34L88 18L74 28z" fill="#ffb3c6"/>
+      <ellipse cx="60" cy="54" rx="41" ry="35" fill="#f6a84b"/>
+      <path d="M60 22v10M50 24l2 9M70 24l-2 9" stroke="#e08a2c" stroke-width="3.2" stroke-linecap="round"/>
+      <ellipse cx="60" cy="67" rx="17" ry="11.5" fill="#fff4e6"/>
+      <circle cx="42" cy="54" r="9" fill="#3a2230"/><circle cx="78" cy="54" r="9" fill="#3a2230"/>
+      <circle cx="45" cy="50.5" r="3.4" fill="#fff"/><circle cx="81" cy="50.5" r="3.4" fill="#fff"/>
+      <circle cx="40" cy="58" r="1.5" fill="#fff"/><circle cx="76" cy="58" r="1.5" fill="#fff"/>
+      <path d="M55 60h10l-5 6z" fill="#ff8fae"/>
+      <path d="M60 66v3M60 69q-5 4-9 0M60 69q5 4 9 0" stroke="#8a5545" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <ellipse cx="27" cy="66" rx="7" ry="4.5" fill="#ff8fbd" opacity=".6"/><ellipse cx="93" cy="66" rx="7" ry="4.5" fill="#ff8fbd" opacity=".6"/>
+      <path d="M28 64L9 60M28 68L9 70M92 64L111 60M92 68L111 70" stroke="#fff4e6" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="giftbox" viewBox="0 0 120 120">
+      <rect x="18" y="52" width="84" height="56" rx="8" fill="#ff7eb3"/>
+      <rect x="12" y="38" width="96" height="22" rx="8" fill="#ff5c9f"/>
+      <rect x="52" y="38" width="16" height="70" fill="#ffd84d"/>
+      <path d="M60 38C46 14 24 18 34 32c6 8 20 6 26 6zM60 38c14-24 36-20 26-6-6 8-20 6-26 6z" fill="#ffd84d"/>
+      <circle cx="60" cy="38" r="7" fill="#ffc21a"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="float"></div>
+<canvas id="confetti"></canvas>
+
+<!-- مدخل -->
+<div class="screen" id="intro">
+  <svg class="gift" id="giftBtn"><use href="#giftbox"/></svg>
+  <h1 id="introTitle"></h1>
+  <p>عندي لك مفاجأة صغيرة… بس لازم تستاهلينها <svg class="i"><use href="#paw"/></svg></p>
+  <button class="btn" id="open"><svg class="i"><use href="#heart"/></svg> افتحي الهدية</button>
+</div>
+
+<!-- لعبة البازل -->
+<div class="screen" id="game">
+  <div class="board" id="board"></div>
+  <div style="font-weight:700">الحركات: <span id="moves">0</span> &nbsp;·&nbsp; اضغطي قطعتين عشان تبدّلينهم</div>
+  <div class="gbtns"><button class="btn soft" id="hintBtn"><svg class="i"><use href="#spark"/></svg> تلميح</button>
+  <button class="btn soft" id="shuffleBtn"><svg class="i"><use href="#puzzle"/></svg> اخلطي من جديد</button></div>
+  <div id="win">
+    <svg class="cat"><use href="#cat"/></svg>
+    <h2 id="winTitle"></h2>
+    <p id="winMsg"></p>
+    <button class="btn" id="winBtn"></button>
+  </div>
+</div>
+
+<main>
+  <!-- الفصل 1 -->
+  <div class="chapter" data-ch="1" hidden>
+    <section class="hero">
+      <svg class="cat-big"><use href="#cat"/></svg>
+      <div class="big">2</div>
+      <h1 id="heroTitle"></h1>
+      <p id="heroSub"></p>
+    </section>
+    <section>
+      <h2><svg class="i"><use href="#spark"/></svg>مرّ علينا<svg class="i"><use href="#spark"/></svg></h2>
+      <div class="counter">
+        <div><b id="cD">0</b><span>يوم</span></div>
+        <div><b id="cH">0</b><span>ساعة</span></div>
+        <div><b id="cM">0</b><span>دقيقة</span></div>
+        <div><b id="cS">0</b><span>ثانية</span></div>
+      </div>
+    </section>
+    <section>
+      <h2><svg class="i"><use href="#heart"/></svg>ليش أنتِ مميزة<svg class="i"><use href="#heart"/></svg></h2>
+      <p class="sub">اضغطي على كل بطاقة</p>
+      <div class="cards" id="cards"></div>
+    </section>
+  </div>
+
+  <!-- الفصل 2 -->
+  <div class="chapter" data-ch="2" hidden>
+    <section>
+      <h2><svg class="i"><use href="#flower"/></svg>ذكرياتنا<svg class="i"><use href="#flower"/></svg></h2>
+      <div class="timeline" id="timeline"></div>
+    </section>
+    <section>
+      <h2><svg class="i"><use href="#ticket"/></svg>قسايمك عندي<svg class="i"><use href="#ticket"/></svg></h2>
+      <p class="sub">صالحة مدى الحياة، اضغطي "استخدميها" وقت ما تبين</p>
+      <div id="coupons"></div>
+    </section>
+  </div>
+
+  <!-- الفصل 3 -->
+  <div class="chapter" data-ch="3" hidden>
+    <section>
+      <h2><svg class="i"><use href="#spark"/></svg>أمنياتنا للسنوات الجاية<svg class="i"><use href="#spark"/></svg></h2>
+      <div class="wishes" id="wishes"></div>
+    </section>
+    <section>
+      <h2><svg class="i"><use href="#heart"/></svg>كلمة من قلبي<svg class="i"><use href="#heart"/></svg></h2>
+      <div class="letter" id="letter"></div>
+    </section>
+    <section class="end">
+      <svg class="cat"><use href="#cat"/></svg>
+      <h2 style="margin-bottom:18px">وأخيراً…</h2>
+      <button class="btn" id="again"><svg class="i"><use href="#heart"/></svg> أحبك</button>
+      <footer id="footer"></footer>
+    </section>
+  </div>
+</main>
+
+<script>
+/* ============ عدّلي هنا فقط ============ */
+const CONFIG = {
+  herName: "إيلاف",
+  yourName: "أسيل",
+  startDate: "2024-10-09T00:00:00", // تاريخ بداية صداقتكم (عدّليه)
+  heroSub: "سنتين من الضحك والذكريات والأيام الحلوة، وإن شاء الله للأبد.",
+
+  // مراحل البازل. بدلي img بصور ثانية (حطيها في مجلد photos) لو تبين
+  puzzles: [
+    { img: "photos/cat.webp", cols: 3, rows: 4 }
+  ],
+
+  reasons: [
+    "ضحكتك ووجودك الحلو بيومي",
+    "تسمعيني حتى لو ما شرحت",
+    "دايماً موجودة وقت أحتاجك",
+    "تفهمين سكوتي قبل كلامي",
+    "صادقة وقلبك أبيض",
+    "تساعديني بكل الأوقات وتعطيني وقتك"
+  ],
+  memories: [
+    // photo: "photos/1.jpg" (اختياري)
+    { date: "أيام زمان", title: "تطقيماتنا", text: "حتى بالصور نكمل بعض.", photo: "",
+      photos: [
+        { src: "photos/elaf.webp", wide: true },
+        { src: "photos/aseel.webp", wide: true },
+        { src: "photos/match1.webp" },
+        { src: "photos/match2.png" }
+      ] },
+    { date: "موقف ما ينتسي", title: "ضحكة ما أنساها",  text: "من أحلى الهرجات بيننا.", photo: "",
+      photos: [
+        { src: "photos/chat1.webp" },
+        { src: "photos/chat3.webp" },
+        { src: "photos/chat2.png", wide: true }
+      ] },
+    { date: "ألعابنا",      title: "أوقات لعبنا مع بعض", text: "نلعب ونهرج سوا.", photo: "",
+      photos: [
+        { src: "photos/game1.webp" },
+        { src: "photos/game2.webp" },
+        { src: "photos/game3.webp" }
+      ] },
+    { date: "كلامك", title: "كلامك الحلو لي", text: "كلامك أحلى هدية عندي.", photo: "", full: true,
+      photos: [
+        { src: "photos/words1.png" },
+        { src: "photos/words2.png" }
+      ] }
+  ],
+  coupons: [
+    "قسيمة يوم نلعب فورت أو روبلوكس",
+    "قسيمة يوم أعلمك كيف تسوين موقع",
+    "قسيمة سالفة أسمعها بدون ما أقاطع",
+    "قسيمة ندخل فويس نهرج ونلعب"
+  ],
+  wishes: ["نعجز مع بعض", "نتقابل", "نرجع زي زمان وأفضل", "تطعميني من التشيز كيك حقك", "أطعمك من السينابون حقي"],
+
+  letter:
+`إلى إيلافي،
+
+هاي إيلافي حبوبي، تحسبيني ناسيتك؟
+مو ناسيتك، تخسي ما أهتم حبوبي.
+
+أحبك إيلافي مرا، مو شوي. إنتي شخص مرا عزيز علي، حتى لو كنا ما نتكلم طول الوقت، وحتى لو قل كلامنا ووقتنا مع بعض، للحين أعزك وأحبك وأموت فيك، ومبسوطة بوجودك في حياتي.
+
+ومرا متمسكة فيك عشان ما أبي أخسر صحبتك الحلوة. مرا ممتنة لكل موقف وكلمة وحرف، ولكل وقت حزين أو جميل كان معاي.
+
+أحبك مرا، والله يخليك لي، ونكمل ١٠٠ سنة مع بعض.
+
+— {YOU}`
+};
+/* ======================================= */
+
+const $ = id => document.getElementById(id);
+const icon = n => `<svg class="i"><use href="#${n}"/></svg>`;
+
+$("introTitle").textContent = `إلى ${CONFIG.herName}`;
+$("heroTitle").textContent = `سنتين من الصحبة الحلوة ${CONFIG.herName}ي`;
+$("heroSub").textContent = CONFIG.heroSub;
+$("letter").textContent = CONFIG.letter.replace("{YOU}", CONFIG.yourName);
+$("footer").innerHTML = `صُنع بحب من ${CONFIG.yourName} ${icon("heart")}`;
+
+$("timeline").innerHTML = CONFIG.memories.map(m => `
+  <div class="mem"><svg class="dot"><use href="#paw"/></svg><small>${m.date}</small><h3>${m.title}</h3><p>${m.text}</p>
+  ${m.photo ? `<img src="${m.photo}" alt="">` : ""}
+  ${m.photos ? `<div class="pics${m.full ? ' full' : ''}" style="grid-template-columns:repeat(${m.full ? 1 : m.photos.length > 3 ? 2 : m.photos.length},1fr)">${m.photos.map(p => `<img src="${p.src}" alt="">`).join("")}</div>` : ""}</div>`).join("");
+const lb = document.createElement("div");
+lb.id = "lightbox"; lb.innerHTML = "<img alt=''>";
+lb.onclick = () => lb.classList.remove("on");
+document.body.appendChild(lb);
+document.querySelectorAll(".pics img").forEach(im => im.onclick = () => { lb.firstChild.src = im.src; lb.classList.add("on"); });
+
+$("cards").innerHTML = CONFIG.reasons.map((r,i) => `
+  <div class="fc"><div class="in">
+    <div class="f"><svg><use href="#heart"/></svg>سبب ${i+1}</div>
+    <div class="b">${r}</div></div></div>`).join("");
+document.querySelectorAll(".fc").forEach(c => c.onclick = () => c.classList.toggle("flip"));
+
+$("coupons").innerHTML = CONFIG.coupons.map(c => `
+  <div class="coupon"><svg class="ci"><use href="#ticket"/></svg><b>${c}</b>
+  <button class="btn">استخدميها</button><div class="stamp"><span>تم الاستخدام</span></div></div>`).join("");
+document.querySelectorAll(".coupon .btn").forEach(b => b.onclick = () => { b.closest(".coupon").classList.add("used"); boom(); });
+
+$("wishes").innerHTML = CONFIG.wishes.map(w => `<span>${icon("paw")}${w}</span>`).join("");
+
+// العداد
+const start = new Date(CONFIG.startDate).getTime();
+function tick(){
+  const d = Math.max(0, Date.now() - start);
+  $("cD").textContent = Math.floor(d/864e5);
+  $("cH").textContent = Math.floor(d/36e5)%24;
+  $("cM").textContent = Math.floor(d/6e4)%60;
+  $("cS").textContent = Math.floor(d/1e3)%60;
+}
+tick(); setInterval(tick, 1000);
+
+// عناصر طايرة
+const floaters = [["heart","#ff7eb3"],["heart","#ff9ec7"],["paw","#f6a84b"],["spark","#ffd84d"],["flower","#ffb3d1"],["paw","#ff9ec7"]];
+function floatOne(){
+  const [n,c] = floaters[Math.floor(Math.random()*floaters.length)];
+  const el = document.createElement("div");
+  el.className = "fl";
+  const s = 16 + Math.random()*22;
+  el.innerHTML = `<svg style="width:${s}px;height:${s}px;color:${c}"><use href="#${n}"/></svg>`;
+  el.style.left = Math.random()*100 + "vw";
+  el.style.animationDuration = 8 + Math.random()*7 + "s";
+  $("float").appendChild(el);
+  setTimeout(() => el.remove(), 16000);
+}
+setInterval(floatOne, 800);
+
+// قصاصات
+const cv = $("confetti"), cx = cv.getContext("2d");
+let pieces = [];
+function size(){ cv.width = innerWidth; cv.height = innerHeight; }
+size(); addEventListener("resize", size);
+function boom(){
+  const colors = ["#ff7eb3","#ffd84d","#ffb3d1","#fff","#f6a84b"];
+  const wasEmpty = !pieces.length;
+  for(let i=0;i<170;i++) pieces.push({
+    x: innerWidth/2, y: innerHeight/2.2,
+    vx: (Math.random()-.5)*16, vy: Math.random()*-15-3,
+    s: 6+Math.random()*7, r: Math.random()*6, c: colors[i%colors.length], life: 170
+  });
+  if(wasEmpty) loop();
+}
+function loop(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  pieces.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += .33; p.r += .2; p.life--;
+    cx.save(); cx.translate(p.x,p.y); cx.rotate(p.r);
+    cx.fillStyle = p.c; cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6); cx.restore();
+  });
+  pieces = pieces.filter(p => p.life > 0 && p.y < cv.height+20);
+  if(pieces.length) requestAnimationFrame(loop); else cx.clearRect(0,0,cv.width,cv.height);
+}
+
+/* ========== لعبة البازل ========== */
+const STAGES = CONFIG.puzzles;
+let stage = 0, order = [], sel = -1, moves = 0, busy = false;
+const board = $("board");
+
+function solved(){ return order.every((v,i) => v === i); }
+function shuffle(){
+  const total = STAGES[stage].cols * STAGES[stage].rows;
+  do {
+    order = [...Array(total).keys()];
+    for(let i=total-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [order[i],order[j]] = [order[j],order[i]]; }
+  } while(order.filter((v,i)=>v===i).length > 1);
+  sel = -1; moves = 0; busy = false;
+  $("moves").textContent = 0;
+  board.classList.remove("solved");
+  $("win").classList.remove("on");
+}
+function render(){
+  const {img, cols, rows} = STAGES[stage];
+  board.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+  board.style.gridTemplateRows = `repeat(${rows},1fr)`;
+  board.innerHTML = "";
+  order.forEach((id,pos) => {
+    const t = document.createElement("div");
+    t.className = "tile" + (pos === sel ? " sel" : "");
+    t.style.backgroundImage = `url("${img}")`;
+    t.style.backgroundSize = `${cols*100}% ${rows*100}%`;
+    const c = id % cols, r = Math.floor(id / cols);
+    t.style.backgroundPosition = `${cols>1 ? c/(cols-1)*100 : 0}% ${rows>1 ? r/(rows-1)*100 : 0}%`;
+    t.onclick = () => pick(pos);
+    board.appendChild(t);
+  });
+  const h = document.createElement("div");
+  h.className = "hint"; h.id = "hint"; h.style.backgroundImage = `url("${img}")`;
+  board.appendChild(h);
+}
+function pick(pos){
+  if(busy) return;
+  if(sel < 0){ sel = pos; }
+  else if(sel === pos){ sel = -1; }
+  else {
+    [order[sel], order[pos]] = [order[pos], order[sel]];
+    sel = -1; moves++; $("moves").textContent = moves;
+  }
+  render();
+  if(solved()) win();
+}
+function startStage(n){
+  stage = n; shuffle(); render();
+  $("game").classList.add("on");
+}
+function win(){
+  busy = true;
+  board.classList.add("solved");
+  boom();
+  setTimeout(() => {
+    $("winTitle").textContent = `برافو يا ${CONFIG.herName}!`;
+    $("winMsg").textContent = `خلصتيها في ${moves} حركة. جاهزة المفاجأة!`;
+    $("winBtn").innerHTML = `${icon("heart")} افتحي المفاجأة`;
+    $("win").classList.add("on");
+  }, 1200);
+}
+$("hintBtn").onclick = () => { const h = $("hint"); if(!h) return; h.classList.add("on"); setTimeout(() => h.classList.remove("on"), 1500); };
+$("shuffleBtn").onclick = () => { shuffle(); render(); };
+$("winBtn").onclick = () => { $("game").classList.remove("on"); unlockAll(); };
+
+/* ========== فتح الفصول ========== */
+const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add("show")), {threshold:.12});
+function unlockAll(){
+  document.querySelectorAll(".chapter").forEach(ch => {
+    ch.hidden = false;
+    ch.querySelectorAll("section").forEach(s => io.observe(s));
+  });
+  window.scrollTo(0, 0);
+  boom();
+}
+
+function openIt(){
+  $("intro").classList.add("hide");
+  startStage(0);
+}
+$("open").onclick = openIt; $("giftBtn").onclick = openIt;
+$("again").onclick = boom;
+</script>
+</body>
+</html>
